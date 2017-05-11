@@ -10,4 +10,25 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.oohana.HomeActivity">
 
+    <Switch
+        android:layout_width="wrap_content"
+        android:shadowColor="@android:color/holo_green_light"
+        android:layout_height="wrap_content"
+        android:id="@+id/geofenceSwitch"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/geofenceSwitch"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="11dp"
+        android:layout_marginStart="11dp"
+        android:layout_marginTop="27dp"
+        android:id="@+id/lastLocationText"
+        android:textSize="30sp"/>
+
 </RelativeLayout>
