@@ -48,6 +48,7 @@ public class GeofenceTransitionService extends IntentService {
         }
 
         int geoFenceTransition = geofencingEvent.getGeofenceTransition();
+
         if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER || geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL
                 || geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
@@ -64,11 +65,11 @@ public class GeofenceTransitionService extends IntentService {
         }
         String status = null;
         if(geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
-            status = "Entering";
+            status = "Entering ";
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL){
-            status = "Dwelling";
+            status = "Dwelling ";
         } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
-            status = "Exiting";
+            status = "Exiting ";
         }
 
         return status + TextUtils.join(", ", triggeringGeofencesList);
@@ -81,10 +82,11 @@ public class GeofenceTransitionService extends IntentService {
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(HomeActivity.class);
         stackBuilder.addNextIntent(notificationIntent);
-        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        int id = (int)System.currentTimeMillis();
+        PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(0, createNotification(msg, notificationPendingIntent));
+        notificationManager.notify(id, createNotification(msg, notificationPendingIntent));
     }
 
     private Notification createNotification(String msg, PendingIntent notificationPendingIntent){

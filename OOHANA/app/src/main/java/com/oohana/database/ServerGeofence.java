@@ -9,17 +9,17 @@ import io.realm.annotations.PrimaryKey;
 
 public class ServerGeofence extends RealmObject {
     @PrimaryKey
-    private String geof_id;
+    private int geof_id;
     private String geof_name;
     private double geof_lat;
     private double geof_long;
     private float geof_rad; //must be in meters
 
-    public String getGeof_id() {
+    public int getGeof_id() {
         return geof_id;
     }
 
-    public void setGeof_id(String geof_id) {
+    public void setGeof_id(int geof_id) {
         this.geof_id = geof_id;
     }
 

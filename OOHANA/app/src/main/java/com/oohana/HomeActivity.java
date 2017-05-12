@@ -61,6 +61,7 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
     private final int UPDATE_INTERVAL = 60000;
     private final int FASTEST_INTERVAL = 30000;
     private final int REQ_PERMISSION = 100;
+    private final int LOITERING_DELAY = 60000;// should be 10 mins
     private Realm realm;
     private TextView lastLocationText;
 
@@ -260,24 +261,22 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER
                         | Geofence.GEOFENCE_TRANSITION_DWELL
                         | Geofence.GEOFENCE_TRANSITION_EXIT)
-                .setLoiteringDelay(600000) //10 minutes dwelling
+                .setLoiteringDelay(LOITERING_DELAY) //10 minutes dwelling
                 .build();
     }
 
     private GeofencingRequest createGeofenceRequest(Geofence geofence) {
-
         System.out.println("CHECK: creatingRequest");
         return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
                 .addGeofence(geofence)
                 .build();
     }
 
     private GeofencingRequest createGeofenceRequest(List<Geofence> geofences) {
-
         System.out.println("CHECK: creatingRequest");
         return new GeofencingRequest.Builder()
-                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER | GeofencingRequest.INITIAL_TRIGGER_DWELL)
                 .addGeofences(geofences)
                 .build();
     }
