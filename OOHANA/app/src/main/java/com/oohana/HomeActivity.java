@@ -3,6 +3,7 @@ package com.oohana;
 import android.Manifest;
 import android.app.PendingIntent;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -11,8 +12,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -27,6 +30,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationListener;
@@ -40,6 +44,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -47,9 +52,10 @@ import java.util.Locale;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
-public class HomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ResultCallback {
+public class HomeActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ResultCallback<Status> {
 
     private GoogleApiClient googleApiClient;
+    protected ArrayList<Geofence> mGeofenceList;
     private Location lastLocation;
     private LocationRequest locationRequest;
     private final int UPDATE_INTERVAL = 60000;
@@ -65,6 +71,8 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
         Realm.init(getApplicationContext());
         realm = Realm.getDefaultInstance();
         lastLocationText = (TextView) findViewById(R.id.lastLocationText);
+        mGeofenceList = new ArrayList<>();
+
         if(getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE).getInt(Constants.INSTALLATION_NUM, -1) == 2) {
             JsonObjectRequest geofenceList = new JsonObjectRequest
                     (Request.Method.GET, Constants.geofenceListLink, null, new Response.Listener<JSONObject>() {
@@ -125,20 +133,29 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
 
     }
 
+    public void startGeofencing(){
+        if(checkPermisson()) {
+            RealmResults<ServerGeofence> geofences = realm.where(ServerGeofence.class).findAll();
+            for (ServerGeofence g : geofences) {
+                mGeofenceList.add(createGeofence(g.getGeof_lat(), g.getGeof_long(), g.getGeof_rad() * 1000, g.getGeof_name()));
+            }
+
+            addGeofence(createGeofenceRequest(mGeofenceList));
+        } else{
+            askPermission();
+        }
+    }
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         System.out.println("CHECK: Google API connected");
         getLastKnownLocation();
+        startGeofencing();
 
-        RealmResults<ServerGeofence> geofences = realm.where(ServerGeofence.class).findAll();
-        for(ServerGeofence g: geofences){
-            startGeofence(g.getGeof_lat(), g.getGeof_long(), g.getGeof_rad()*1000, g.getGeof_id());
-        }
     }
 
     private void getLastKnownLocation() {
         if (checkPermisson()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             }
             lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
@@ -158,7 +175,7 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
                 .setInterval(UPDATE_INTERVAL)
                 .setFastestInterval(FASTEST_INTERVAL);
         if (checkPermisson()) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             }
             LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
@@ -167,7 +184,7 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        googleApiClient.connect();
     }
 
     @Override
@@ -179,14 +196,20 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onStop() {
         super.onStop();
         //disconnect though this might be remove to continuously get location
-        googleApiClient.disconnect();
+        if (googleApiClient!=null) {
+            if (googleApiClient.isConnecting() || googleApiClient.isConnected()) {
+                googleApiClient.disconnect();
+            }
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if(googleApiClient != null) {
-            googleApiClient.connect();
+        if (googleApiClient!=null) {
+            if (!googleApiClient.isConnecting() || !googleApiClient.isConnected()) {
+                googleApiClient.connect();
+            }
         }
     }
 
@@ -194,14 +217,16 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onLocationChanged(Location location) {
         System.out.println("CHECK: Location Changes");
         lastLocation = location;
+        lastLocationText.setText("Last Location - LONG=" + lastLocation.getLongitude() + "\nLAT=" +
+                lastLocation.getLatitude() + "\nTimeStamp=" + Calendar.getInstance().getTime().toString());
     }
 
     private boolean checkPermisson() {
-        return (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED);
+        return (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
     }
 
     private void askPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQ_PERMISSION);
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQ_PERMISSION);
     }
 
     @Override
@@ -211,6 +236,7 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
             case REQ_PERMISSION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     getLastKnownLocation();
+                    startGeofencing();
                 } else {
                     permissionDenied();
                 }
@@ -247,12 +273,14 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
                 .build();
     }
 
-//    private GeofencingRequest createGeofenceRequest(List<Geofence> geofences) {
-//        return new GeofencingRequest.Builder()
-//                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
-//                .addGeofences(geofences)
-//                .build();
-//    }
+    private GeofencingRequest createGeofenceRequest(List<Geofence> geofences) {
+
+        System.out.println("CHECK: creatingRequest");
+        return new GeofencingRequest.Builder()
+                .setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER)
+                .addGeofences(geofences)
+                .build();
+    }
 
     //Creating the service to take care of event triggers
     private PendingIntent geoFencePendingIntent;
@@ -267,6 +295,8 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     private void addGeofence(GeofencingRequest request) {
+
+        System.out.println("CHECK: Entered adding geofence");
         if(checkPermisson()) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             }
@@ -278,16 +308,32 @@ public class HomeActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
     @Override
-    public void onResult(@NonNull Result result) {
-        Toast.makeText(getApplicationContext(), result.getStatus().toString(), Toast.LENGTH_LONG).show();
+    public void onResult(Status status) {
+
+        System.out.println("CHECK: Status=" + status.getStatus());
+        if (status.isSuccess()) {
+            Toast.makeText(
+                    this,
+                    "Geofences Added",
+                    Toast.LENGTH_SHORT
+            ).show();
+        } else if (status.getStatusCode()==1000){
+            // Get the status code for the error and log it using a user-friendly message.
+            new AlertDialog.Builder(this).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            }).setCancelable(true).setTitle("Use Google location services").setMessage("Please turn on Google Location services in Settings. Enable High Accuracy Mode.").create().show();
+        }
     }
 
-    private void startGeofence(double lat, double lng, float radius, String id){
-        System.out.println("CHECK: Start Geofence=" + id);
-        Geofence geofence = createGeofence(lat, lng, radius ,id);
-        GeofencingRequest geofencingRequest = createGeofenceRequest(geofence);
-        addGeofence(geofencingRequest);
-    }
+//    private void startGeofence(double lat, double lng, float radius, String id){
+//        System.out.println("CHECK: Start Geofence=" + id);
+//        Geofence geofence = createGeofence(lat, lng, radius ,id);
+//        GeofencingRequest geofencingRequest = createGeofenceRequest(geofence);
+//        addGeofence(geofencingRequest);
+//    }
 
 
 }
