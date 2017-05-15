@@ -1,4 +1,4 @@
-package com.oohana;
+package com.oohana.database;
 
 import android.content.Context;
 

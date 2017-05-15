@@ -52,6 +52,8 @@ public class SplashScreen extends AppCompatActivity {
         setContentView(R.layout.activity_splash_screen);
         Realm.init(getApplicationContext());
 
+        //ask to connect to the internet before proceeding if first install
+
         View view = findViewById(R.id.activity_splash_screen);
         mHandler.postDelayed(new StartMainActivityRunnable(this, view), Constants.LOGO_DISPLAY_LENGTH);
     }
