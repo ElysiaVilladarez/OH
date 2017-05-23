@@ -1,4 +1,8 @@
-package com.oohana.database;
+package com.oohana;
+
+/**
+ * Created by elysi on 5/19/2017.
+ */
 
 import io.realm.RealmObject;
 import io.realm.annotations.PrimaryKey;

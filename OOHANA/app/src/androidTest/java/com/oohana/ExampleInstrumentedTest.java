@@ -1,4 +1,4 @@
-package com.oohana.oohana;
+package com.oohana;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.oohana.oohana", appContext.getPackageName());
+        assertEquals("com.oohana", appContext.getPackageName());
     }
 }

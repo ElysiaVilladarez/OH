@@ -8,7 +8,15 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.oohana.SplashScreen"
-    android:background="@mipmap/splash_screen">
+    android:background="@color/colorPrimary"
+    tools:context="com.oohana.SplashScreen">
 
+    <TextView
+        android:layout_centerInParent="true"
+        android:textStyle="bold"
+        android:textColor="@color/colorAccent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="95sp"
+        android:text="OOH\nANA" />
 </RelativeLayout>

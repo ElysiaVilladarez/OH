@@ -1,4 +1,4 @@
-package com.oohana.database;
+package com.oohana;
 
 import android.content.Context;
 
@@ -6,7 +6,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 /**
- * Created by elysi on 5/11/2017.
+ * Created by elysi on 5/20/2017.
  */
 
 public class RequestQueSingleton {

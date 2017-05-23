@@ -1,4 +1,4 @@
-package com.oohana.oohana;
+package com.oohana;
 
 import org.junit.Test;
 

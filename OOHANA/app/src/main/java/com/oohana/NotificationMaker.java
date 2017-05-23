@@ -1,33 +1,40 @@
-package com.oohana.helpers;
+package com.oohana;
 
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TaskStackBuilder;
+import android.app.job.JobInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.widget.Toast;
 
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofenceStatusCodes;
 import com.google.android.gms.location.GeofencingEvent;
-import com.oohana.HomeActivity;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
+import io.realm.Realm;
+
 /**
- * Created by elysi on 5/15/2017.
+ * Created by elysi on 5/20/2017.
  */
 
-public class NotificationsHandler {
-
+public class NotificationMaker {
+    /**
+     * Created by elysi on 5/15/2017.
+     */
     private Context c;
+    private int s;
 
-    public NotificationsHandler(Context c){
+    public NotificationMaker(Context c){
         this.c = c;
     }
 
@@ -51,18 +58,34 @@ public class NotificationsHandler {
         }
     }
 
-    private String getGeofenceTransitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences){
+    private String getGeofenceTransitionDetails(int geoFenceTransition, List<Geofence> triggeringGeofences) {
         ArrayList<String> triggeringGeofencesList = new ArrayList<>();
-        for(Geofence geofence: triggeringGeofences){
+        for (Geofence geofence : triggeringGeofences) {
             triggeringGeofencesList.add(geofence.getRequestId());
         }
         String status = null;
-        if(geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER){
+        s = 0;
+        if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
             status = "Entering ";
-        } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL){
+            s = 0;
+        } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_DWELL) {
             status = "Dwelling ";
-        } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT){
+            s = 1;
+        } else if (geoFenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
             status = "Exiting ";
+            s = 2;
+        }
+        Realm realm = Realm.getDefaultInstance();
+        for(final Geofence g: triggeringGeofences){
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    TriggeredGeofence tg = new TriggeredGeofence();
+                    tg.setGeof_id(realm.where(ServerGeofence.class).equalTo("geof_name", g.getRequestId()).findFirst().getGeof_id());
+                    tg.setStatus(s);
+                    tg.setTimestamp(Calendar.getInstance().getTime());
+                }
+            });
         }
 
         return status + TextUtils.join(", ", triggeringGeofencesList);
@@ -81,15 +104,15 @@ public class NotificationsHandler {
         }
     }
 
-    private Notification createNotification(String msg, PendingIntent notificationPendingIntent){
+    private Notification createNotification(String msg, PendingIntent notificationPendingIntent) {
 
-        System.out.println("CHECK: creating notification");
+        System.out.println("Creating notification");
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(c);
         notificationBuilder
                 .setSmallIcon(com.google.android.gms.R.drawable.common_full_open_on_phone)
-                .setColor(Color.RED)
+                .setColor(ContextCompat.getColor(c, R.color.colorPrimary))
                 .setContentTitle(msg)
-                .setContentText("geofence Spotted")
+                .setContentText("Geofence Spotted")
                 .setContentIntent(notificationPendingIntent)
                 .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_LIGHTS | Notification.DEFAULT_VIBRATE)
                 .setAutoCancel(true);
@@ -98,20 +121,20 @@ public class NotificationsHandler {
 
     }
 
-    private void sendNotification(String msg){
+    private void sendNotification(String msg) {
 
-        System.out.println("CHECK: Sending notification");
-        Intent notificationIntent = new Intent(c, HomeActivity.class);
+        System.out.println("Sending notification");
+        Intent notificationIntent = new Intent(c, Home.class);
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(c);
-        stackBuilder.addParentStack(HomeActivity.class);
+        stackBuilder.addParentStack(Home.class);
         stackBuilder.addNextIntent(notificationIntent);
-        int id = (int)System.currentTimeMillis();
+
+        int id = (int) System.currentTimeMillis();
         PendingIntent notificationPendingIntent = stackBuilder.getPendingIntent(id, PendingIntent.FLAG_UPDATE_CURRENT);
 
         NotificationManager notificationManager = (NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(id, createNotification(msg, notificationPendingIntent));
     }
-
 
 
 }

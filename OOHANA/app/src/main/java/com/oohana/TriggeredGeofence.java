@@ -1,4 +1,5 @@
-package com.oohana.database;
+package com.oohana;
+
 
 import java.util.Date;
 
@@ -8,7 +9,7 @@ import io.realm.RealmObject;
  * Created by elysi on 5/11/2017.
  */
 
-public class Log extends RealmObject {
+public class TriggeredGeofence extends RealmObject {
     private int geof_id;
     private int status; // 0 - Entering, 1 - Dwelling, 2 - Exiting
     private Date timestamp;
@@ -37,3 +38,4 @@ public class Log extends RealmObject {
         this.timestamp = timestamp;
     }
 }
+
