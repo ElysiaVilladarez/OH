@@ -76,16 +76,21 @@ public class NotificationMaker {
             s = 2;
         }
         Realm realm = Realm.getDefaultInstance();
-        for(final Geofence g: triggeringGeofences){
-            realm.executeTransactionAsync(new Realm.Transaction() {
-                @Override
-                public void execute(Realm realm) {
-                    TriggeredGeofence tg = new TriggeredGeofence();
-                    tg.setGeof_id(realm.where(ServerGeofence.class).equalTo("geof_name", g.getRequestId()).findFirst().getGeof_id());
-                    tg.setStatus(s);
-                    tg.setTimestamp(Calendar.getInstance().getTime());
-                }
-            });
+        if(realm.where(TriggeredGeofence.class).count()<1000) {
+            for (final Geofence g : triggeringGeofences) {
+                realm.beginTransaction();
+                TriggeredGeofence tg = new TriggeredGeofence();
+                tg.setGeof_id(realm.where(ServerGeofence.class).equalTo("geof_name", g.getRequestId()).findFirst().getGeof_id());
+                tg.setStatus(s);
+                tg.setTimestamp(Calendar.getInstance().getTime());
+                realm.insert(tg);
+                realm.commitTransaction();
+                System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
+            }
+        } else{
+            Toast.makeText(c,
+                    "Please connect to the internet to sync with server. Logs will no longer be recorded.",
+                    Toast.LENGTH_LONG).show();
         }
 
         return status + TextUtils.join(", ", triggeringGeofencesList);

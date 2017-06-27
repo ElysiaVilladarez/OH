@@ -10,6 +10,7 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.provider.Settings;
+import android.provider.SyncStateContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -65,7 +66,11 @@ public class SplashScreen extends AppCompatActivity {
 
     private void checkLocPermission(){
         if(checkPermisson()) {
-            checkProvider();
+            if(checkPermission2()) {
+                checkProvider();
+            } else{
+                askPermission2();
+            }
         } else askPermission();
     }
     private void checkProvider(){
@@ -113,6 +118,19 @@ public class SplashScreen extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, Constants.REQ_PERMISSION);
     }
 
+    private boolean checkPermission2(){
+//        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE);
+//        return (permissionCheck == PackageManager.PERMISSION_GRANTED);
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_WIFI_STATE);
+        return (permissionCheck == PackageManager.PERMISSION_GRANTED);
+
+    }
+
+    private void askPermission2(){
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_WIFI_STATE}, Constants.REQUEST_READ_PHONE_STATE);
+    }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -120,7 +138,16 @@ public class SplashScreen extends AppCompatActivity {
         switch (requestCode) {
             case Constants.REQ_PERMISSION:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    System.out.println("PERMISSION GRANTED");
+                    System.out.println("PERMISSION GRANTED-1");
+                    if(checkPermission2()) {
+                        checkProvider();
+                    }else askPermission2();
+                } else {
+                    permissionDenied();
+                }
+            case Constants.REQUEST_READ_PHONE_STATE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    System.out.println("PERMISSION GRANTED-2");
                     checkProvider();
                 } else {
                     permissionDenied();
@@ -130,7 +157,7 @@ public class SplashScreen extends AppCompatActivity {
 
     public void permissionDenied(){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Please allow OOHANA to access your location to proceed.")
+        builder.setMessage("Please allow OOHANA to access to proceed.")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {

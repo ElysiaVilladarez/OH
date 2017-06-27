@@ -18,6 +18,8 @@ public class ServerGeofence extends RealmObject {
     private double geof_lat;
     private double geof_long;
     private float geof_rad; //must be in meters
+    private double nearnesstToCurrLoc;
+
 
     public int getGeof_id() {
         return geof_id;
@@ -57,5 +59,13 @@ public class ServerGeofence extends RealmObject {
 
     public void setGeof_rad(float geof_rad) {
         this.geof_rad = geof_rad;
+    }
+
+    public double getNearnesstToCurrLoc() {
+        return nearnesstToCurrLoc;
+    }
+
+    public void setNearnesstToCurrLoc(double nearnesstToCurrLoc) {
+        this.nearnesstToCurrLoc = nearnesstToCurrLoc;
     }
 }

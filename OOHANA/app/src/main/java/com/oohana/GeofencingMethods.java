@@ -8,10 +8,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -21,6 +23,14 @@ import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
 import com.google.android.gms.location.LocationServices;
+
+import java.util.Calendar;
+
+import io.nlopez.smartlocation.OnLocationUpdatedListener;
+import io.nlopez.smartlocation.SmartLocation;
+import io.nlopez.smartlocation.location.providers.LocationGooglePlayServicesWithFallbackProvider;
+import io.realm.Realm;
+import io.realm.RealmResults;
 
 /**
  * Created by elysi on 5/19/2017.
@@ -32,6 +42,8 @@ public class GeofencingMethods {
     private Context c;
     private GoogleApiClient googleApiClient;
     private SharedPreferences prefs;
+    public static Location location;
+
 
     public GeofencingMethods(Context c, SharedPreferences prefs) {
         this.c = c;
@@ -41,6 +53,7 @@ public class GeofencingMethods {
     }
 
     public Geofence createGeofence(String name, double lat, double lng, float radius) {
+        System.out.println("Creating geofences");
         return new Geofence.Builder()
                 .setRequestId(name)
                 .setCircularRegion(lat, lng, radius)
@@ -53,46 +66,50 @@ public class GeofencingMethods {
     }
 
     public void addToGeofencingRequest(Geofence g) {
-        Home.geofenceNum.setText(Integer.toString(Integer.parseInt(Home.geofenceNum.getText().toString())+1));
+        System.out.println("Adding geofencing request");
         prefs.edit().putInt(Constants.GEOFENCE_NUM, prefs.getInt(Constants.GEOFENCE_NUM, 0)+1).commit();
         geofencingRequestBuilder.addGeofence(g);
     }
 
     public PendingIntent createPendingIntent() {
+        System.out.println("Creating pending intent");
         if (geofencePendingIntent != null) return geofencePendingIntent;
 
-     //   Intent intent = new Intent(c, GeofenceTriggeredService.class);
-     //   geofencePendingIntent = PendingIntent.getService(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        Intent intent = new Intent(c, GeofenceTriggeredService.class);
+        geofencePendingIntent = PendingIntent.getService(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
 
-        Intent intent = new Intent(Constants.ACTION_GEOFENCE_RECEIVED);
-        geofencePendingIntent = PendingIntent.getBroadcast(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+//        Intent intent = new Intent(Constants.ACTION_GEOFENCE_RECEIVED);
+//        geofencePendingIntent = PendingIntent.getBroadcast(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         return geofencePendingIntent;
     }
 
     public void addToGeofencingApi(){
+
         if (ActivityCompat.checkSelfPermission(c, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            System.out.println("addToGeofencingAPI");
 
         }
-        if(Home.geofenceNum.getText().equals(0)){
-            new AlertDialog.Builder(c)
-                    .setTitle("No Geofence Data Found")
-                    .setMessage("No geofence list found. An error occurred in getting the data from the server.")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            return;
-        }
+//        if(Home.geofenceNum.getText().toString().equals("0")){
+//            new AlertDialog.Builder(c)
+//                    .setTitle("No Geofence Data Found")
+//                    .setMessage("No geofence list found. An error occurred in getting the data from the server.")
+//                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//                            dialog.dismiss();
+//                        }
+//                    });
+//            return;
+//        }
         LocationServices.GeofencingApi.addGeofences(
                 googleApiClient, geofencingRequestBuilder.build(), createPendingIntent())
                 .setResultCallback(new ResultCallback<Status>() {
                     @Override
                     public void onResult(Status status) {
                         if (status.isSuccess()) {
+                            System.out.println("Successfully set up geofences");
                             Toast.makeText(
                                     c,
                                     "Geofences added",
@@ -106,15 +123,22 @@ public class GeofencingMethods {
                                     Toast.LENGTH_LONG
                             ).show();
 
-
                             prefs.edit().putInt(Constants.GEOFENCE_NUM, 0).commit();
-                            Home.geofenceNum.setText("0");
+                        } else{
+                            Toast.makeText(
+                                    c,
+                                    "Error status code: "+ status.getStatusCode(),
+                                    Toast.LENGTH_LONG
+                            ).show();
                         }
 
+                        Home.geofenceNum.setText(Integer.toString(prefs.getInt(Constants.GEOFENCE_NUM, 0)));
+                        prefs.edit().putInt(Constants.GEOFENCE_NUM, 0).commit();
 
                     }
                 });
     }
+
     //Building googleAPI client
     public synchronized void buildGoogleApiClient() {
         if (googleApiClient == null) {
@@ -124,7 +148,7 @@ public class GeofencingMethods {
                         public void onConnected(@Nullable Bundle bundle) {
                             System.out.println("GOOGLE API CLIENT CONNECTED");
                             addToGeofencingApi();
-                            //Go to service when triggered
+                            updateLocation();
 
                         }
                         @Override
@@ -148,5 +172,54 @@ public class GeofencingMethods {
         }
     }
 
+    //Location updates
+    public void updateLocation(){
+        SmartLocation.with(c).location(new LocationGooglePlayServicesWithFallbackProvider(c))
+                .start(new OnLocationUpdatedListener() {
+                    @Override
+                    public void onLocationUpdated(Location location) {
+                        System.out.println("LOCATION UPDATED");
 
+                        GeofencingMethods.this.location = location;
+
+                        if(Home.latText !=null && Home.lngText !=null && Home.timestamp!=null) {
+                            Home.latText.setText(Double.toString(location.getLatitude()));
+                            Home.lngText.setText(Double.toString(location.getLongitude()));
+                            Home.timestamp.setText(Constants.f.format(Calendar.getInstance().getTime()));
+                        }
+
+                        getNearest(location);
+                    }
+                });
+    }
+
+
+    //Harversin formula
+    public static final double R = 6372.8; // In kilometers
+
+    public static double haversine(double lat1, double lon1, double lat2, double lon2) {
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        lat1 = Math.toRadians(lat1);
+        lat2 = Math.toRadians(lat2);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+        double c = 2 * Math.asin(Math.sqrt(a));
+        return R * c * 1000;
+    }
+
+    //apply harversine to all
+    public void getNearest(Location location){ // this should be 95 just in case
+        if(location!=null) {
+            Realm realm = Realm.getDefaultInstance();
+            RealmResults<ServerGeofence> sgList = realm.where(ServerGeofence.class).findAll();
+            realm.beginTransaction();
+            for (ServerGeofence a : sgList) {
+                a.setNearnesstToCurrLoc(haversine(location.getLatitude(), location.getLongitude(), a.getGeof_lat(), a.getGeof_long()));
+            }
+            realm.commitTransaction();
+        } else{
+            updateLocation();
+        }
+    }
 }
