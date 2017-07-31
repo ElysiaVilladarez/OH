@@ -53,7 +53,7 @@ public class NotificationMaker {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geoFenceTransition, triggeringGeofences);
 
-            sendNotification(geofenceTransitionDetails);
+          //  sendNotification(geofenceTransitionDetails);
 
         }
     }
