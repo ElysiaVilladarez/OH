@@ -42,7 +42,6 @@ public class GeofenceReceiver extends BroadcastReceiver {
     private SharedPreferences prefs;
    // Intent broadcastIntent = new Intent();
 
-    Realm realm = Realm.getDefaultInstance();
 
 
     @Override
@@ -61,9 +60,13 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
         if ("android.location.PROVIDERS_CHANGED".equals(intent.getAction())) {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+
+                Realm realm = Realm.getDefaultInstance();
                 if (realm.where(ServerGeofence.class).count() <= 0) {
+                    realm.close();
                     dm.getData();
                 } else {
+                    realm.close();
                     dm.startGeofencing();
                 }
             } else {
@@ -105,8 +108,8 @@ public class GeofenceReceiver extends BroadcastReceiver {
         if (Constants.ACTION_OUTSIDE_SYNC.equals(intent.getAction())) {
             System.out.println("syncing outside . . .");
 
-            //log outside
             Realm realm = Realm.getDefaultInstance();
+            //log outside
             if(realm.where(TriggeredGeofence.class).count()<1000) {
                     realm.beginTransaction();
                     TriggeredGeofence tg = new TriggeredGeofence();
@@ -121,7 +124,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
                         "Please connect to the internet to sync with server. Logs will no longer be recorded.",
                         Toast.LENGTH_LONG).show();
             }
-
+            realm.close();
             AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
             Intent myIntent = new Intent(c, GeofenceReceiver.class);
             myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);

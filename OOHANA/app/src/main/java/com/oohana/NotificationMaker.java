@@ -103,6 +103,7 @@ public class NotificationMaker {
                 realm.insert(tg);
                 realm.commitTransaction();
                 System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
+                realm.close();
             }
         } else{
             Toast.makeText(c,

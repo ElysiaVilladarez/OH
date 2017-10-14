@@ -58,15 +58,19 @@ public class Home extends AppCompatActivity {
 
 //        Get geofence from server
         if (realm.where(ServerGeofence.class).count() <= 0) {
+            realm.close();
             dm.getData();
         } else {
+            realm.close();
             dm.startGeofencing();
         }
 
 
+        realm = Realm.getDefaultInstance();
         geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         int logCount = (int) realm.where(TriggeredGeofence.class).count();
         System.out.println("LOG COUNT: " + logCount);
+        realm.close();
         dm.syncData();
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         Intent myIntent = new Intent(this, GeofenceReceiver.class);

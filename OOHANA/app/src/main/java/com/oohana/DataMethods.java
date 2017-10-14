@@ -72,10 +72,12 @@ public class DataMethods {
 
                                 System.out.println("Successfully gotten data from server. Count: " +
                                         realm.where(ServerGeofence.class).count());
+                                realm.close();
                                 startGeofencing();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            realm.close();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -83,6 +85,7 @@ public class DataMethods {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
+                        realm.close();
                     }
                 });
 
@@ -152,8 +155,12 @@ public class DataMethods {
                                 realm.beginTransaction();
                                 t.deleteFromRealm();
                                 realm.commitTransaction();
+                                System.out.println("Successfully syced data. ServerGeofence Count: " +
+                                        realm.where(ServerGeofence.class).count() + " Log Count: " + realm.where(TriggeredGeofence.class).count());
                             } catch (JSONException e) {
                                 e.printStackTrace();
+                            } finally {
+                                realm.close();
                             }
                         }
                     }, new Response.ErrorListener() {
@@ -161,13 +168,11 @@ public class DataMethods {
                 public void onErrorResponse(VolleyError error) {
                     // error
                     Log.d("Error.Response", error.getMessage());
+                    realm.close();
                 }
             });
             RequestQueSingleton.getInstance(c).getRequestQueue().add(syncRequest);
         }
-
-        System.out.println("Successfully syced data. ServerGeofence Count: " +
-                realm.where(ServerGeofence.class).count() + " Log Count: " + realm.where(TriggeredGeofence.class).count());
 
     }
 
@@ -181,7 +186,6 @@ public class DataMethods {
     public void startGeofencing() {
         //Set up geofence
         System.out.println("Start geofencing");
-        final Realm realm = Realm.getDefaultInstance();
         SharedPreferences prefs = c.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         final GeofencingMethods gM = new GeofencingMethods(c, prefs);
         SmartLocation.with(c).location(new LocationGooglePlayServicesWithFallbackProvider(c))
@@ -190,6 +194,8 @@ public class DataMethods {
                     @Override
                     public void onLocationUpdated(Location location) {
                         gM.getNearest(location);
+
+                        final Realm realm = Realm.getDefaultInstance();
                         RealmResults<ServerGeofence> geofenceList = realm.where(ServerGeofence.class)
                                 .findAllSorted("nearnesstToCurrLoc", Sort.ASCENDING);
                         if(geofenceList.size() > 97){
@@ -203,6 +209,7 @@ public class DataMethods {
                         }
                         //Build googleApiClient and connect to service
                         gM.buildGoogleApiClient();
+                        realm.close();
                     }
                 });
 
@@ -239,12 +246,14 @@ public class DataMethods {
 
 
                                 if(isNew){
+                                    realm.close();
                                     startGeofencing();
                                 }
 
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
+                            realm.close();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -252,6 +261,7 @@ public class DataMethods {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
+                        realm.close();
                     }
                 });
 
