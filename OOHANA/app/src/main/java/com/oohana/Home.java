@@ -59,12 +59,12 @@ public class Home extends AppCompatActivity {
 //        Get geofence from server
         if (realm.where(ServerGeofence.class).count() <= 0) {
             dm.getData();
-            geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         } else {
             dm.startGeofencing();
-            geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         }
 
+
+        geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         int logCount = (int) realm.where(TriggeredGeofence.class).count();
         System.out.println("LOG COUNT: " + logCount);
         dm.syncData();

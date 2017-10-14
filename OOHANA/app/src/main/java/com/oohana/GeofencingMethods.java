@@ -131,7 +131,7 @@ public class GeofencingMethods {
                             ).show();
                         }
 
-                        Home.geofenceNum.setText(Integer.toString(prefs.getInt(Constants.GEOFENCE_NUM, 0)));
+                        //Home.geofenceNum.setText(Integer.toString(prefs.getInt(Constants.GEOFENCE_NUM, 0)));
                         prefs.edit().putInt(Constants.GEOFENCE_NUM, 0).commit();
 
                     }

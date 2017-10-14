@@ -174,8 +174,8 @@ public class DataMethods {
     public String translateStatus(int i) {
         if (i == 0) return "ENTERING";
         else if (i == 1) return "DWELLING";
-        else if (i==1) return "EXITING";
-        else return "OUTSIDE";
+        else if (i == 2) return "EXITING";
+        else return "NORMAL";
     }
 
     public void startGeofencing() {

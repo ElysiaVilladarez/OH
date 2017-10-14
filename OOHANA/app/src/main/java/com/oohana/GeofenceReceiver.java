@@ -111,7 +111,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
                     realm.beginTransaction();
                     TriggeredGeofence tg = new TriggeredGeofence();
                     tg.setGeof_id(-1);
-                    tg.setStatus(3);
+                    tg.setStatus(100);
                     tg.setTimestamp(Calendar.getInstance().getTime());
                     realm.insert(tg);
                     realm.commitTransaction();

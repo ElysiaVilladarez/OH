@@ -27,8 +27,8 @@ public class Constants {
     public final static String ACTION_SYNC = "com.oohana.ACTION_SYNC";
     public final static String ACTION_OUTSIDE_SYNC = "com.oohana.OUTSIDE_SYNC";
 
-    public final static int syncingTime =1200000; //should be 20 mins
-    public final static int logOutsideTime =1200000; //should be 20 mins
+    public final static int syncingTime = 300000; //should be 5 mins
+    public final static int logOutsideTime = 1200000; //should be 20 mins
 
     public final static SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
