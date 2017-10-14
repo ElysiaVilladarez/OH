@@ -59,8 +59,10 @@ public class Home extends AppCompatActivity {
 //        Get geofence from server
         if (realm.where(ServerGeofence.class).count() <= 0) {
             dm.getData();
+            geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         } else {
             dm.startGeofencing();
+            geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
         }
 
         int logCount = (int) realm.where(TriggeredGeofence.class).count();
@@ -79,6 +81,20 @@ public class Home extends AppCompatActivity {
 
         }
 
+
+        AlarmManager alarmManager2 = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        Intent myIntent2 = new Intent(this, GeofenceReceiver.class);
+        myIntent2.setAction(Constants.ACTION_OUTSIDE_SYNC);
+        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(this,
+                Constants.OUTSIDE_INTENT_ID, myIntent2, PendingIntent.FLAG_CANCEL_CURRENT);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            System.out.println("setting outside sync . . .");
+            alarmManager2.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent2);
+        } else{
+            System.out.println("setting outside sync . . .");
+            alarmManager2.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent2);
+
+        }
     }
 
 

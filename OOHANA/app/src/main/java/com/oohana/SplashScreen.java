@@ -157,7 +157,7 @@ public class SplashScreen extends AppCompatActivity {
 
     public void permissionDenied(){
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("Please allow OOHANA to access to proceed.")
+        builder.setMessage("Please allow OOHANA to permissions to proceed.")
                 .setCancelable(false)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {

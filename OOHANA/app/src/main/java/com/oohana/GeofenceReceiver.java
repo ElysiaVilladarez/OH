@@ -25,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -84,7 +85,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
 
         // getData();
         if (Constants.ACTION_SYNC.equals(intent.getAction())) {
-            Toast.makeText(c, "Syncing with Server . . .", Toast.LENGTH_LONG).show();
+            //Toast.makeText(c, "Syncing with Server . . .", Toast.LENGTH_LONG).show();
             dm.getData2();
             dm.syncData();
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -96,6 +97,42 @@ public class GeofenceReceiver extends BroadcastReceiver {
                 alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
             } else {
                 alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
+
+            }
+        }
+
+        //sync outside
+        if (Constants.ACTION_OUTSIDE_SYNC.equals(intent.getAction())) {
+            System.out.println("syncing outside . . .");
+
+            //log outside
+            Realm realm = Realm.getDefaultInstance();
+            if(realm.where(TriggeredGeofence.class).count()<1000) {
+                    realm.beginTransaction();
+                    TriggeredGeofence tg = new TriggeredGeofence();
+                    tg.setGeof_id(-1);
+                    tg.setStatus(3);
+                    tg.setTimestamp(Calendar.getInstance().getTime());
+                    realm.insert(tg);
+                    realm.commitTransaction();
+                    System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
+            } else{
+                Toast.makeText(c,
+                        "Please connect to the internet to sync with server. Logs will no longer be recorded.",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+            Intent myIntent = new Intent(c, GeofenceReceiver.class);
+            myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(c,
+                    Constants.OUTSIDE_INTENT_ID, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                System.out.println("setting outside sync . . .");
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
+            } else{
+                System.out.println("setting outside sync . . .");
+                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
 
             }
         }

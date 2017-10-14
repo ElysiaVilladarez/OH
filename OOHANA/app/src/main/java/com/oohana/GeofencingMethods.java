@@ -78,7 +78,6 @@ public class GeofencingMethods {
         Intent intent = new Intent(c, GeofenceTriggeredService.class);
         geofencePendingIntent = PendingIntent.getService(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-
 //        Intent intent = new Intent(Constants.ACTION_GEOFENCE_RECEIVED);
 //        geofencePendingIntent = PendingIntent.getBroadcast(c, Constants.PENDING_INTENT_ID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -141,6 +140,7 @@ public class GeofencingMethods {
 
     //Building googleAPI client
     public synchronized void buildGoogleApiClient() {
+        System.out.println("BUILD GOOGL API");
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(c)
                     .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {

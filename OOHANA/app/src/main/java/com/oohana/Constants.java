@@ -12,9 +12,10 @@ public class Constants {
     public final static int REQ_PERMISSION = 100;
     public final static int REQUEST_READ_PHONE_STATE = 101;
 
-    public final static int LOITERING_DELAY = 600000; //should be 10 mins but for the sake of testing, 1 min
+    public final static int LOITERING_DELAY = 600000; //should be 10 mins
 
     public final static int PENDING_INTENT_ID = 210;
+    public final static int OUTSIDE_INTENT_ID = 220;
 
     public final static String geofenceListLink = "http://oohana.technotrekinc.com/get_geofence_list.php";
     public final static String syncLink = "http://oohana.technotrekinc.com/insert_to_server.php";
@@ -24,8 +25,10 @@ public class Constants {
 
     public final static String ACTION_GEOFENCE_RECEIVED = "com.oohana.ACTION_GEOFENCE_RECEIVED";
     public final static String ACTION_SYNC = "com.oohana.ACTION_SYNC";
+    public final static String ACTION_OUTSIDE_SYNC = "com.oohana.OUTSIDE_SYNC";
 
-    public final static int syncingTime =1800000; //should be 30 mins but for the sake of testig, 1 min
+    public final static int syncingTime =1200000; //should be 20 mins
+    public final static int logOutsideTime =1200000; //should be 20 mins
 
     public final static SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 

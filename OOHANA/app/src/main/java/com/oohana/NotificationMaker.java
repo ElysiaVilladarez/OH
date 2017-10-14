@@ -1,5 +1,6 @@
 package com.oohana;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -8,6 +9,7 @@ import android.app.job.JobInfo;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -53,7 +55,22 @@ public class NotificationMaker {
             List<Geofence> triggeringGeofences = geofencingEvent.getTriggeringGeofences();
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geoFenceTransition, triggeringGeofences);
 
-          //  sendNotification(geofenceTransitionDetails);
+            AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+            Intent myIntent = new Intent(c, GeofenceReceiver.class);
+            myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(c,
+                    Constants.OUTSIDE_INTENT_ID, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                System.out.println("setting outside sync . . .");
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
+            } else{
+                System.out.println("setting outside sync . . .");
+                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
+
+            }
+
+
+            //  sendNotification(geofenceTransitionDetails);
 
         }
     }
