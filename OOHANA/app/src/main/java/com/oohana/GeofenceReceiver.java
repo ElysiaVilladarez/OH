@@ -54,7 +54,6 @@ public class GeofenceReceiver extends BroadcastReceiver {
         if ("android.intent.action.BOOT_COMPLETED".equals(intent.getAction())) {
             if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 context.registerReceiver(this, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
-
             }
         }
 
@@ -66,6 +65,7 @@ public class GeofenceReceiver extends BroadcastReceiver {
                     realm.close();
                     dm.getData();
                 } else {
+                    System.out.println("RECEIVER PROVIDER CHANGED!");
                     realm.close();
                     dm.startGeofencing();
                 }

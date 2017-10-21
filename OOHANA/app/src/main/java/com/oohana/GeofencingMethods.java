@@ -28,6 +28,8 @@ import java.util.Calendar;
 
 import io.nlopez.smartlocation.OnLocationUpdatedListener;
 import io.nlopez.smartlocation.SmartLocation;
+import io.nlopez.smartlocation.location.config.LocationAccuracy;
+import io.nlopez.smartlocation.location.config.LocationParams;
 import io.nlopez.smartlocation.location.providers.LocationGooglePlayServicesWithFallbackProvider;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -54,6 +56,7 @@ public class GeofencingMethods {
 
     public Geofence createGeofence(String name, double lat, double lng, float radius) {
         System.out.println("Creating geofences");
+        if(radius <= 0) radius = Constants.GEOFENCE_RADIUS_DEFAULT_VALUE;
         return new Geofence.Builder()
                 .setRequestId(name)
                 .setCircularRegion(lat, lng, radius)
@@ -174,7 +177,14 @@ public class GeofencingMethods {
 
     //Location updates
     public void updateLocation(){
+        LocationParams.Builder builder = new LocationParams.Builder()
+                .setAccuracy(LocationAccuracy.HIGH)
+                .setDistance(0)
+                .setInterval(Constants.LOCATION_TRACKING_INTERVAL);
         SmartLocation.with(c).location(new LocationGooglePlayServicesWithFallbackProvider(c))
+                .continuous()
+                .config(builder.build())
+                .continuous()
                 .start(new OnLocationUpdatedListener() {
                     @Override
                     public void onLocationUpdated(Location location) {
