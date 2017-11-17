@@ -27,6 +27,8 @@ import java.util.UUID;
 
 import io.nlopez.smartlocation.OnLocationUpdatedListener;
 import io.nlopez.smartlocation.SmartLocation;
+import io.nlopez.smartlocation.location.config.LocationAccuracy;
+import io.nlopez.smartlocation.location.config.LocationParams;
 import io.nlopez.smartlocation.location.providers.LocationGooglePlayServicesWithFallbackProvider;
 import io.realm.Realm;
 import io.realm.RealmResults;
@@ -188,6 +190,7 @@ public class DataMethods {
         System.out.println("Start geofencing");
         SharedPreferences prefs = c.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
         final GeofencingMethods gM = new GeofencingMethods(c, prefs);
+
         SmartLocation.with(c).location(new LocationGooglePlayServicesWithFallbackProvider(c))
                 .oneFix()
                 .start(new OnLocationUpdatedListener() {
