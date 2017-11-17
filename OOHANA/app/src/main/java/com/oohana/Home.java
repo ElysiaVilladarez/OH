@@ -55,7 +55,7 @@ public class Home extends AppCompatActivity {
         //logsList = (ListView) findViewById(R.id.logList);
 
 
-
+        System.out.println("SUCCESS");
 //        Get geofence from server
         if (realm.where(ServerGeofence.class).count() <= 0) {
             realm.close();
