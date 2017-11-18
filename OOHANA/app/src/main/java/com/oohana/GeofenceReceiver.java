@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.location.LocationManager;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.content.WakefulBroadcastReceiver;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -37,7 +38,7 @@ import io.realm.RealmResults;
  * Created by elysi on 5/20/2017.
  */
 
-public class GeofenceReceiver extends BroadcastReceiver {
+public class GeofenceReceiver extends WakefulBroadcastReceiver {
     private Context c;
     private SharedPreferences prefs;
    // Intent broadcastIntent = new Intent();

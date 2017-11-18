@@ -74,6 +74,7 @@ public class DataMethods {
 
                                 System.out.println("Successfully gotten data from server. Count: " +
                                         realm.where(ServerGeofence.class).count());
+                                Home.geofenceNum.setText(Long.toString(realm.where(ServerGeofence.class).count()));
                                 realm.close();
                                 startGeofencing();
                             }
@@ -196,6 +197,7 @@ public class DataMethods {
                 .start(new OnLocationUpdatedListener() {
                     @Override
                     public void onLocationUpdated(Location location) {
+                        System.out.println("Smart location");
                         gM.getNearest(location);
 
                         final Realm realm = Realm.getDefaultInstance();

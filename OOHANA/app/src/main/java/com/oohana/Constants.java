@@ -27,11 +27,11 @@ public class Constants {
     public final static String ACTION_SYNC = "com.oohana.ACTION_SYNC";
     public final static String ACTION_OUTSIDE_SYNC = "com.oohana.OUTSIDE_SYNC";
 
-    public final static int syncingTime = 300000; //should be 5 mins
-    public final static int logOutsideTime = 1200000; //should be 20 mins
+    public final static int syncingTime = 1000 * 60 * 1; //should be 5 mins
+    public final static int logOutsideTime = 1000 * 60 * 5; //should be 20 mins
     public final static int GEOFENCE_RADIUS_DEFAULT_VALUE = 5;
     public final static int LOCATION_TRACKING_INTERVAL = 60000; //1 min
 
-    public final static SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    public final static SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 }
