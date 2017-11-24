@@ -143,7 +143,7 @@ public class GeofencingMethods {
 
     //Building googleAPI client
     public synchronized void buildGoogleApiClient() {
-        System.out.println("BUILD GOOGL API");
+        System.out.println("BUILD GOOGLE API");
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(c)
                     .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {

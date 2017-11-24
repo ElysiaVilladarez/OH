@@ -8,6 +8,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
@@ -26,6 +28,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.InetAddress;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,6 +52,7 @@ public class GeofenceReceiver extends WakefulBroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.c = context;
         prefs = c.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+        Realm.init(c);
         DataMethods dm  = new DataMethods(c);
 
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
@@ -62,14 +66,16 @@ public class GeofenceReceiver extends WakefulBroadcastReceiver {
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
 
                 Realm realm = Realm.getDefaultInstance();
-                if (realm.where(ServerGeofence.class).count() <= 0) {
-                    realm.close();
+                //if (realm.where(ServerGeofence.class).count() <= 0) {
+                realm.close();
+                if(isInternetAvailable(context)){
                     dm.getData();
-                } else {
-                    System.out.println("RECEIVER PROVIDER CHANGED!");
-                    realm.close();
-                    dm.startGeofencing();
                 }
+                //} else {
+                    System.out.println("RECEIVER PROVIDER CHANGED!");
+                   // realm.close();
+                    dm.startGeofencing();
+               // }
             } else {
                 // go to settings and do it!!
             }
@@ -88,58 +94,70 @@ public class GeofenceReceiver extends WakefulBroadcastReceiver {
 //        LocalBroadcastManager.getInstance(c).sendBroadcast(broadcastIntent);
 
         // getData();
-        if (Constants.ACTION_SYNC.equals(intent.getAction())) {
-            //Toast.makeText(c, "Syncing with Server . . .", Toast.LENGTH_LONG).show();
-            dm.getData2();
-            dm.syncData();
-            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-            Intent myIntent = new Intent(context, GeofenceReceiver.class);
-            myIntent.setAction(Constants.ACTION_SYNC);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context,
-                    0, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
-            } else {
-                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
+//        if (Constants.ACTION_SYNC.equals(intent.getAction())) {
+//            if(isInternetAvailable(context)) {
+//                System.out.println("Internet is available!");
+//                dm.getData2();
+//                dm.syncData();
+//            } else{
+//                System.out.println("Internet is not available.");
+//            }
+//            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+//            Intent myIntent = new Intent(context, GeofenceTriggeredService.class);
+//            myIntent.setAction(Constants.ACTION_SYNC);
+//            PendingIntent pendingIntent = PendingIntent.getService(context,
+//                    0, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
+//            } else {
+//                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.syncingTime, pendingIntent);
+//
+//            }
+//        }
+//
+//        //sync outside
+//        if (Constants.ACTION_OUTSIDE_SYNC.equals(intent.getAction())) {
+//            System.out.println("syncing outside . . .");
+//
+//            Realm realm = Realm.getDefaultInstance();
+//            //log outside
+//            if(realm.where(TriggeredGeofence.class).count()<1000) {
+//                    realm.beginTransaction();
+//                    TriggeredGeofence tg = new TriggeredGeofence();
+//                    tg.setGeof_id(-1);
+//                    tg.setStatus(100);
+//                    tg.setTimestamp(Calendar.getInstance().getTime());
+//                    realm.insert(tg);
+//                    realm.commitTransaction();
+//                    System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
+//            } else{
+//                Toast.makeText(c,
+//                        "Please connect to the internet to sync with server. Logs will no longer be recorded.",
+//                        Toast.LENGTH_LONG).show();
+//            }
+//            realm.close();
+//            AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
+//            Intent myIntent = new Intent(c, GeofenceReceiver.class);
+//            myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);
+//            PendingIntent pendingIntent = PendingIntent.getBroadcast(c,
+//                    Constants.OUTSIDE_INTENT_ID, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//                System.out.println("setting outside sync . . .");
+//                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
+//            } else{
+//                System.out.println("setting outside sync . . .");
+//                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
+//
+//            }
+//        }
 
-            }
-        }
+    }
 
-        //sync outside
-        if (Constants.ACTION_OUTSIDE_SYNC.equals(intent.getAction())) {
-            System.out.println("syncing outside . . .");
-
-            Realm realm = Realm.getDefaultInstance();
-            //log outside
-            if(realm.where(TriggeredGeofence.class).count()<1000) {
-                    realm.beginTransaction();
-                    TriggeredGeofence tg = new TriggeredGeofence();
-                    tg.setGeof_id(-1);
-                    tg.setStatus(100);
-                    tg.setTimestamp(Calendar.getInstance().getTime());
-                    realm.insert(tg);
-                    realm.commitTransaction();
-                    System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
-            } else{
-                Toast.makeText(c,
-                        "Please connect to the internet to sync with server. Logs will no longer be recorded.",
-                        Toast.LENGTH_LONG).show();
-            }
-            realm.close();
-            AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
-            Intent myIntent = new Intent(c, GeofenceReceiver.class);
-            myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(c,
-                    Constants.OUTSIDE_INTENT_ID, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                System.out.println("setting outside sync . . .");
-                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
-            } else{
-                System.out.println("setting outside sync . . .");
-                alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()+Constants.logOutsideTime, pendingIntent);
-
-            }
-        }
+    public boolean isInternetAvailable(Context context) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        //should check null because in airplane mode it will be null
+        return (netInfo != null && netInfo.isConnected());
 
     }
 

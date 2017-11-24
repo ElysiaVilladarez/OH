@@ -74,9 +74,9 @@ public class Home extends AppCompatActivity {
         realm.close();
         dm.syncData();
         AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent myIntent = new Intent(this, GeofenceReceiver.class);
+        Intent myIntent = new Intent(this, GeofenceTriggeredService.class);
         myIntent.setAction(Constants.ACTION_SYNC);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this,
+        PendingIntent pendingIntent = PendingIntent.getService(this,
                 0, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             System.out.println("setting alarm . . .");
@@ -88,9 +88,9 @@ public class Home extends AppCompatActivity {
 
 
         AlarmManager alarmManager2 = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        Intent myIntent2 = new Intent(this, GeofenceReceiver.class);
+        Intent myIntent2 = new Intent(this, GeofenceTriggeredService.class);
         myIntent2.setAction(Constants.ACTION_OUTSIDE_SYNC);
-        PendingIntent pendingIntent2 = PendingIntent.getBroadcast(this,
+        PendingIntent pendingIntent2 = PendingIntent.getService(this,
                 Constants.OUTSIDE_INTENT_ID, myIntent2, PendingIntent.FLAG_CANCEL_CURRENT);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             System.out.println("setting outside sync . . .");

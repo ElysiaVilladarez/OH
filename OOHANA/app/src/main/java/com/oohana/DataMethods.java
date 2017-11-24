@@ -19,6 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.NetworkInterface;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +56,12 @@ public class DataMethods {
                         try {
                             String success = response.getString("result");
                             if (success.equals("success")) {
+                                realm.beginTransaction();
+                                realm.delete(ServerGeofence.class);
+                                realm.commitTransaction();
                                 final JSONArray geofences = response.getJSONArray("geofence");
                                 for (int i = 0; i < geofences.length(); i++) {
                                     JSONObject g = geofences.getJSONObject(i);
-                                    if (realm.where(ServerGeofence.class).equalTo("geof_id", g.getInt("geof_id")).count() <= 0) {
                                         realm.beginTransaction();
                                         ServerGeofence sg = new ServerGeofence();
                                         sg.setGeof_id(g.getInt("geof_id"));
@@ -68,8 +71,6 @@ public class DataMethods {
                                         sg.setGeof_rad((float) g.getDouble("geof_rad"));
                                         realm.insert(sg);
                                         realm.commitTransaction();
-                                    }
-
                                 }
 
                                 System.out.println("Successfully gotten data from server. Count: " +
@@ -143,7 +144,12 @@ public class DataMethods {
         params.put("deviceID", deviceId);
         final Realm realm = Realm.getDefaultInstance();
         RealmResults<TriggeredGeofence> logs = realm.where(TriggeredGeofence.class).findAll();
-        for (final TriggeredGeofence t : logs) {
+        ArrayList<GeofenceLogs> geofenceLogs = new ArrayList<>();
+        for(TriggeredGeofence l: logs){
+            geofenceLogs.add(new GeofenceLogs(l.getGeof_id(), l.getStatus(), l.getTimestamp()));
+        }
+        realm.close();
+        for (final GeofenceLogs t : geofenceLogs) {
             params.put("geof_id", Integer.toString(t.getGeof_id()));
             params.put("status", translateStatus(t.getStatus()));
             params.put("timestamp", Constants.f.format(t.getTimestamp()));
@@ -153,17 +159,18 @@ public class DataMethods {
                         @Override
                         public void onResponse(JSONObject response) {
                             // response
+
+                            Realm r = Realm.getDefaultInstance();
                             try {
                                 System.out.println(response.getString("result"));
-                                realm.beginTransaction();
-                                t.deleteFromRealm();
-                                realm.commitTransaction();
-                                System.out.println("Successfully syced data. ServerGeofence Count: " +
-                                        realm.where(ServerGeofence.class).count() + " Log Count: " + realm.where(TriggeredGeofence.class).count());
+                                r.beginTransaction();
+                                r.where(TriggeredGeofence.class).equalTo("geof_id", t.getGeof_id()).findFirst().deleteFromRealm();
+                                r.commitTransaction();
+                                System.out.println("Successfully syced data");
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             } finally {
-                                realm.close();
+                                r.close();
                             }
                         }
                     }, new Response.ErrorListener() {
@@ -171,7 +178,7 @@ public class DataMethods {
                 public void onErrorResponse(VolleyError error) {
                     // error
                     Log.d("Error.Response", error.getMessage());
-                    realm.close();
+
                 }
             });
             RequestQueSingleton.getInstance(c).getRequestQueue().add(syncRequest);
@@ -221,11 +228,12 @@ public class DataMethods {
     }
 
     public void getData2() {
-        final Realm realm = Realm.getDefaultInstance();
         JsonObjectRequest geofenceList = new JsonObjectRequest
                 (Request.Method.GET, Constants.geofenceListLink, null, new Response.Listener<JSONObject>() {
                     @Override
                     public void onResponse(JSONObject response) {
+
+                        final Realm realm = Realm.getDefaultInstance();
                         try {
                             String success = response.getString("result");
                             boolean isNew = false;
@@ -244,21 +252,19 @@ public class DataMethods {
                                         sg.setGeof_rad((float) g.getDouble("geof_rad"));
                                         realm.insert(sg);
                                         realm.commitTransaction();
-
                                     }
 
                                 }
-
 
                                 if(isNew){
                                     realm.close();
                                     startGeofencing();
                                 }
-
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
-                            realm.close();
+                        }finally {
+                            if(!realm.isClosed()) realm.close();
                         }
                     }
                 }, new Response.ErrorListener() {
@@ -266,7 +272,6 @@ public class DataMethods {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        realm.close();
                     }
                 });
 

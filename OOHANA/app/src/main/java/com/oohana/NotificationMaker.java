@@ -56,7 +56,7 @@ public class NotificationMaker {
             String geofenceTransitionDetails = getGeofenceTransitionDetails(geoFenceTransition, triggeringGeofences);
 
             AlarmManager alarmManager = (AlarmManager) c.getSystemService(Context.ALARM_SERVICE);
-            Intent myIntent = new Intent(c, GeofenceReceiver.class);
+            Intent myIntent = new Intent(c, GeofenceTriggeredService.class);
             myIntent.setAction(Constants.ACTION_OUTSIDE_SYNC);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(c,
                     Constants.OUTSIDE_INTENT_ID, myIntent, PendingIntent.FLAG_CANCEL_CURRENT);

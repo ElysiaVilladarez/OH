@@ -8,6 +8,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <!--<uses-permission android:name="android.permission.READ_PHONE_STATE"/>-->
     <!--<uses-permission android:name="android.Manifest.permission.READ_PHONE_STATE" />-->
@@ -30,7 +31,18 @@
 
         <service android:name="com.oohana.GeofenceTriggeredService"
             android:enabled="true"
-            android:exported="false"/>
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" >>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.location.PROVIDERS_CHANGED" />
+                <action android:name="android.location.MODE_CHANGED" />
+                <action android:name="com.oohana.ACTION_GEOFENCE_RECEIVED"/>
+                <action android:name="com.oohana.ACTION_SYNC"/>
+                <action android:name="com.oohana.OUTSIDE_SYNC"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </service>
 
         <receiver android:name="com.oohana.GeofenceReceiver"
             android:enabled="true"
