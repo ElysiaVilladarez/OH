@@ -103,8 +103,8 @@ public class NotificationMaker {
                 realm.insert(tg);
                 realm.commitTransaction();
                 System.out.println("LOG COUNT:" + realm.where(TriggeredGeofence.class).count());
-                realm.close();
             }
+            realm.close();
         } else{
             Toast.makeText(c,
                     "Please connect to the internet to sync with server. Logs will no longer be recorded.",

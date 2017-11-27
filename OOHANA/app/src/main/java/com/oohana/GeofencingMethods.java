@@ -67,7 +67,11 @@ public class GeofencingMethods {
                 .setLoiteringDelay(Constants.LOITERING_DELAY) //10 minutes dwelling
                 .build();
     }
-
+    public void removeAllGeofences(){
+        if(googleApiClient != null) {
+            LocationServices.GeofencingApi.removeGeofences(googleApiClient, createPendingIntent());
+        }
+    }
     public void addToGeofencingRequest(Geofence g) {
         System.out.println("Adding geofencing request");
         prefs.edit().putInt(Constants.GEOFENCE_NUM, prefs.getInt(Constants.GEOFENCE_NUM, 0)+1).commit();
@@ -105,6 +109,7 @@ public class GeofencingMethods {
 //                    });
 //            return;
 //        }
+        removeAllGeofences();
         LocationServices.GeofencingApi.addGeofences(
                 googleApiClient, geofencingRequestBuilder.build(), createPendingIntent())
                 .setResultCallback(new ResultCallback<Status>() {
@@ -199,6 +204,8 @@ public class GeofencingMethods {
                         }
 
                         getNearest(location);
+
+
                     }
                 });
     }

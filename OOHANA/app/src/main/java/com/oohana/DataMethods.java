@@ -210,12 +210,14 @@ public class DataMethods {
                         final Realm realm = Realm.getDefaultInstance();
                         RealmResults<ServerGeofence> geofenceList = realm.where(ServerGeofence.class)
                                 .findAllSorted("nearnesstToCurrLoc", Sort.ASCENDING);
+                        List<ServerGeofence> list;
                         if(geofenceList.size() > 97){
-                            geofenceList.subList(0, 97);
+                            list = geofenceList.subList(0, 97);
+                        }else{
+                            list = geofenceList;
                         }
-
-                        System.out.println("Geofence list Count: " + geofenceList.size());
-                        for (ServerGeofence g : geofenceList) {
+                        System.out.println("Geofence list Count: " + list.size());
+                        for (ServerGeofence g : list) {
                             Geofence geofence = gM.createGeofence(g.getGeof_name(), g.getGeof_lat(), g.getGeof_long(), g.getGeof_rad() * 1000);
                             gM.addToGeofencingRequest(geofence);
                         }

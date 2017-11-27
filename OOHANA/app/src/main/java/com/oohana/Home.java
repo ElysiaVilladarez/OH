@@ -57,13 +57,13 @@ public class Home extends AppCompatActivity {
 
         System.out.println("SUCCESS");
 //        Get geofence from server
-        if (realm.where(ServerGeofence.class).count() <= 0) {
-            realm.close();
-            dm.getData();
-        } else {
+        if (realm.where(ServerGeofence.class).count() > 0) {
             realm.close();
             dm.startGeofencing();
         }
+        if(!realm.isClosed()) realm.close();
+        dm.getData();
+
 
 
 
